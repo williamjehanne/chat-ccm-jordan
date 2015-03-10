@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Properties;
  
+
+
 import javax.mail.Message;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -14,12 +16,16 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
  
+
+
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -80,6 +86,17 @@ public class WelcomeServlet extends HttpServlet{
                                
                         }
                 }
+                
+                Query q = new Query("RegisteredUser"); 
+                PreparedQuery pq = datastore.prepare(q);
+                resp.getWriter().println("<h3>Liste des utilisateurs</h3>");
+                resp.getWriter().println("<ul>");
+                for (Entity result : pq.asIterable()) {
+                	resp.getWriter().println("<li>");
+                	resp.getWriter().println(result.getProperty("mainMail"));
+                	resp.getWriter().println("</li>");
+            	}
+                resp.getWriter().println("</ul>");
                        
         }
        
