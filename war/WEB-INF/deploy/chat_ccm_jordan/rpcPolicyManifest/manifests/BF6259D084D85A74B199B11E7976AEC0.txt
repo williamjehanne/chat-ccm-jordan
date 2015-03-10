@@ -1,0 +1,2 @@
+serviceClass: com.ccm.chat.client.GreetingService
+path: 8DB00D8EE5773715F13B2EDB1074BFC8.gwt.rpc

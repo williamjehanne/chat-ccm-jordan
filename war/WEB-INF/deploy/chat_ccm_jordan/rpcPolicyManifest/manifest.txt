@@ -1,0 +1,2 @@
+# Module chat_ccm_jordan
+# RPC service class, partial path of RPC policy file
