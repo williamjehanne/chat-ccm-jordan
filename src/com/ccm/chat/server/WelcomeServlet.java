@@ -1,7 +1,9 @@
 package com.ccm.chat.server;
  
+import java.util.List;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Properties;
  
 
@@ -18,6 +20,9 @@ import javax.servlet.http.HttpServletResponse;
  
 
 
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -33,6 +38,7 @@ import com.google.appengine.api.users.UserServiceFactory;
 public class WelcomeServlet extends HttpServlet{
        
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        private BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
  
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -65,13 +71,11 @@ public class WelcomeServlet extends HttpServlet{
                       // Create a RegisteredUser entity, specifying the mainEmail to use in the key
                       userEntity = new Entity("RegisteredUser",user.getEmail());
                     }
-                     
                    
                     // Set properties on the RegisteredUser entity
                     // Set the properties:
                     userEntity.setProperty("mainMail", user.getEmail());
  
-                   
                     // Save the entity in the datastore
                     datastore.put(userEntity);
  
@@ -85,20 +89,40 @@ public class WelcomeServlet extends HttpServlet{
                         }catch(Exception e){
                                
                         }
-                }
-                
-                Query q = new Query("RegisteredUser"); 
+                       
+                       
+                         resp.getWriter().println("<form enctype='multipart/form-data' method='post' action='"+BlobstoreServiceFactory.getBlobstoreService().createUploadUrl("/upload")+"'>");
+                         resp.getWriter().println("<input type='file' name='file' size='30' />");
+                         resp.getWriter().println("<input type='submit' /></form>");
+                       
+                        Query q = new Query("RegisteredUser");
                 PreparedQuery pq = datastore.prepare(q);
                 resp.getWriter().println("<h3>Liste des utilisateurs</h3>");
                 resp.getWriter().println("<ul>");
                 for (Entity result : pq.asIterable()) {
-                	resp.getWriter().println("<li>");
-                	resp.getWriter().println(result.getProperty("mainMail"));
-                	resp.getWriter().println("</li>");
-            	}
+                        resp.getWriter().println("<li>");
+                        resp.getWriter().println(result.getProperty("mainMail"));
+                        resp.getWriter().println("</li>");
+                }
                 resp.getWriter().println("</ul>");
                        
+                }
+                       
         }
-       
+        @Override
+        public void doPost(HttpServletRequest req, HttpServletResponse res)
+            throws ServletException, IOException {
+
+            Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(req);
+            List<BlobKey> blobKeys = blobs.get("file");
+
+            //res.getWriter().println(blobKeys);
+            		
+            if (blobKeys == null || blobKeys.isEmpty()) {
+                res.sendRedirect("/");
+            } else {
+            	blobstoreService.serve(new BlobKey(blobKeys.get(0).getKeyString()), res);
+            }
+        }
  
 }
